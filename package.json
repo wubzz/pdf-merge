@@ -17,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/wubzz/pdf-merge/issues"
   },
-  "homepage": "https://github.com/wubzz/pdf-merge"
+  "homepage": "https://github.com/wubzz/pdf-merge",
+  "dependencies": {
+    "async": "^1.2.0",
+    "q": "^1.4.1",
+    "tmp": "0.0.26",
+    "underscore": "^1.8.3"
+  }
 }
