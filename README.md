@@ -23,6 +23,22 @@ apt-get install pdftk
 https://www.pdflabs.com/docs/install-pdftk-on-redhat-or-centos/
 
 
+### Example
+```javascript
+var PDFMerge = require('pdf-merge');
+var pdftkPath = 'C:\\PDFtk\\bin\\pdftk.exe';
+var pdfFiles = [__dirname + '/pdf1.pdf', __dirname + '/pdf2.pdf'];
+var pdfMerge = new PDFMerge(pdfFiles, pdftkPath);
+
+pdfMerge
+.asBuffer()
+.merge(function(error, buffer) {
+  //fs.writeFileSync(__dirname + '/merged.pdf', buffer);
+});
+
+```
+
+
 ### Usage
 By default, pdf-merge will always return a Buffer of the merged PDF document. It does however support ReadStreams and Save-to-File as well. Read the API below.
 
