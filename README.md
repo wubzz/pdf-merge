@@ -42,7 +42,7 @@ pdfMerge
 ### Usage
 By default, pdf-merge will always return a Buffer of the merged PDF document. It does however support ReadStreams and Save-to-File as well. Read the API below.
 
-**NOTE:** If you are on a Windows platform, you **have** to specify the absolute path to `pdftk.exe`. If you are **not** on Windows platform, the second argument is ignored.
+**NOTE:** If you are on a Windows platform, you can specify the absolute path to `pdftk.exe`, but it is not necessary if PDFtk was properly installed and its path was added to PATH environment variable.
 
 ```javascript
 var PDFMerge = require('pdf-merge');
