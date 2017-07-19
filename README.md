@@ -1,6 +1,6 @@
 # PDFMerge
 
-Merge multiple PDF Files into a single PDF document supporting three output formats: Buffer, Stream (PassThrough), New file on disk.
+Merge multiple PDF Files into a single PDF document supporting three output formats: Buffer, Stream, New file on disk.
 
 ### Requirements
 PDFMerge uses [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/) to merge the documents and as such it is a requirement in order for PDFMerge to work. It will work on any platform supported by [PDFtk](https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/).
