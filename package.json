@@ -3,7 +3,7 @@
     "node": ">=4.0.0"
   },
   "name": "pdf-merge",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Merge PDF files into a single PDF document",
   "main": "index.js",
   "repository": {
