@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": ">=4.0.0"
+  },
   "name": "pdf-merge",
   "version": "0.1.1",
   "description": "Merge PDF files into a single PDF document",
@@ -18,11 +21,18 @@
     "url": "https://github.com/wubzz/pdf-merge/issues"
   },
   "homepage": "https://github.com/wubzz/pdf-merge",
+  "scripts": {
+    "test": "mocha test"
+  },
   "dependencies": {
-    "async": "^1.2.0",
-    "q": "^1.4.1",
+    "bluebird": "^3.5.0",
     "shell-escape": "^0.2.0",
-    "tmp": "0.0.26",
-    "underscore": "^1.8.3"
+    "tmp": "0.0.26"
+  },
+  "devDependencies": {
+    "expect": "^1.20.2",
+    "mocha": "^3.4.2",
+    "pdf2json": "^1.1.7",
+    "rimraf": "^2.6.1"
   }
 }
