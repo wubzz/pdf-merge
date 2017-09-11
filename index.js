@@ -47,7 +47,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
 
 	const args = files.map((file) =>
 		isWindows
-			? `"${file}"`
+			? file
 			: shellescape([file.replace(/\\/g, '/')])
 	).concat(['cat', 'output', tmpFilePath]);
 
