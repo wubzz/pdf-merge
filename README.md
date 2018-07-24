@@ -25,6 +25,8 @@ https://www.pdflabs.com/docs/install-pdftk-on-redhat-or-centos/
 `options`:
 * `libPath` Should only be provided if pdftk is not in your `PATH` *Optional!*
 * `output` Defaults to `Buffer`. Values `Buffer`, `Stream`, and path to a *new file* are accepted. *Optional!*
+* `execOptions` This is an optional string where you can pass additional argument to **pdftk**, for
+example **compress**. For the complete list see the docu of the **pdftk**
 
 ### Examples
 ```javascript
