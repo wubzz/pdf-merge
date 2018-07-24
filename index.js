@@ -16,70 +16,74 @@ const writeFile = Promise.promisify(fs.writeFile);
 const isWindows = os.platform() === 'win32';
 
 module.exports = (files, options) => new Promise((resolve, reject) => {
-	if(!Array.isArray(files)) {
-		reject(new TypeError('Expected files to be an array of paths to PDF files.'));
+  if(!Array.isArray(files)) {
+    reject(new TypeError('Expected files to be an array of paths to PDF files.'));
 
-		return;
-	}
+    return;
+  }
 
-	files = files.filter((file) => typeof file === typeof '');
+  files = files.filter((file) => typeof file === typeof '');
 
-	if(files.length === 0) {
-		reject(new Error('No files were submitted for merging.'));
+  if(files.length === 0) {
+    reject(new Error('No files were submitted for merging.'));
 
-		return;
-	}
+    return;
+  }
 
-	if(files.length === 1) {
-		reject(new Error('You need at least two files in order to merge PDF documents.'));
+  if(files.length === 1) {
+    reject(new Error('You need at least two files in order to merge PDF documents.'));
 
-		return;
-	}
+    return;
+  }
 
-	options = Object.assign({
-		libPath: 'pdftk',
-		output:  Buffer,
-	}, options);
+  options = Object.assign({
+    libPath: 'pdftk',
+    output:  Buffer,
+  }, options);
 
-	const tmpFilePath = isWindows
-		? tmp.tmpNameSync()
-		: shellescape([tmp.tmpNameSync()]);
+  const tmpFilePath = isWindows
+    ? tmp.tmpNameSync()
+    : shellescape([tmp.tmpNameSync()]);
 
-	const args = files.map((file) =>
-		isWindows
-			? file
-			: shellescape([file.replace(/\\/g, '/')])
-	).concat(['cat', 'output', tmpFilePath]);
+  const args = files.map((file) =>
+    isWindows
+      ? file
+      : shellescape([file.replace(/\\/g, '/')])
+  ).concat(['cat', 'output', tmpFilePath]);
 
-	const childPromise = (isWindows && options.libPath !== 'pdftk')
-		? execFile(options.libPath, args)
-		: exec(`${options.libPath} ${args.join(' ')}`);
+  if (options.execOptions) {
+    args.push(options.execOptions);
+  }
 
-	childPromise
-		.then(() =>
-			readFile(tmpFilePath)
-		)
-		.then((buffer) =>
-			new Promise((resolve) => {
-				fs.unlink(tmpFilePath, () => resolve(buffer));
-			})
-		)
-		.then((buffer) => {
-			if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
-				return buffer;
-			}
+  const childPromise = (isWindows && options.libPath !== 'pdftk')
+    ? execFile(options.libPath, args)
+    : exec(`${options.libPath} ${args.join(' ')}`);
 
-			if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
-				const stream = new PassThrough();
+  childPromise
+    .then(() =>
+      readFile(tmpFilePath)
+    )
+    .then((buffer) =>
+      new Promise((resolve) => {
+        fs.unlink(tmpFilePath, () => resolve(buffer));
+      })
+    )
+    .then((buffer) => {
+      if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
+        return buffer;
+      }
 
-				stream.end(buffer);
+      if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
+        const stream = new PassThrough();
 
-				return stream;
-			}
+        stream.end(buffer);
 
-			return writeFile(options.output, buffer)
-				.then(() => buffer);
-		})
-		.then(resolve)
-		.catch(reject);
+        return stream;
+      }
+
+      return writeFile(options.output, buffer)
+        .then(() => buffer);
+    })
+    .then(resolve)
+    .catch(reject);
 });
