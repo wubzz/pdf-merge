@@ -33,8 +33,9 @@ const assertPageCount = (expected) => {
 	});
 };
 
-const pdf1 = `${__dirname}/files/1.pdf`;
-const pdf2 = `${__dirname}/files/2.pdf`;
+const pdf1          = `${__dirname}/files/1.pdf`;
+const pdf2          = `${__dirname}/files/2.pdf`;
+const pdfWithSpaces = `${__dirname}/files/with spaces.pdf`;
 
 describe('PDFMerge', () => {
 
@@ -102,6 +103,11 @@ describe('PDFMerge', () => {
 			PDFMerge([pdf1, pdf1, pdf1, pdf1, pdf2, pdf2], {})
 				.then(assertPageCount(6))
 		);
+
+		it('Can merge files with filename containing spaces', () =>
+			PDFMerge([pdf1, pdfWithSpaces], {})
+				.then(assertPageCount(2))
+		);
 	});
 
 	describe('Stream', () => {
@@ -116,6 +122,13 @@ describe('PDFMerge', () => {
 			PDFMerge([pdf1, pdf1, pdf1, pdf1, pdf2, pdf2], {output: 'Stream'})
 				.then((stream) =>
 					assertPageCount(6)(stream.read())
+				)
+		);
+
+		it('Can merge files with filename containing spaces', () =>
+			PDFMerge([pdf1, pdfWithSpaces], {output: 'Stream'})
+				.then((stream) =>
+					assertPageCount(2)(stream.read())
 				)
 		);
 	});
@@ -136,6 +149,15 @@ describe('PDFMerge', () => {
 					expect(fs.existsSync(`${__dirname}/files/out/File2.pdf`)).toEqual(true);
 
 					return assertPageCount(6)(buffer);
+				})
+		);
+
+		it('Can merge files with filename containing spaces', () =>
+			PDFMerge([pdf1, pdfWithSpaces], {output: `${__dirname}/files/out/File3.pdf`})
+				.then((buffer) => {
+					expect(fs.existsSync(`${__dirname}/files/out/File3.pdf`)).toEqual(true);
+
+					return assertPageCount(2)(buffer);
 				})
 		);
 	});

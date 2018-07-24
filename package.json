@@ -22,17 +22,17 @@
   },
   "homepage": "https://github.com/wubzz/pdf-merge",
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha test --exit"
   },
   "dependencies": {
-    "bluebird": "^3.5.0",
+    "bluebird": "^3.5.1",
     "shell-escape": "^0.2.0",
-    "tmp": "0.0.26"
+    "tmp": "0.0.33"
   },
   "devDependencies": {
     "expect": "^1.20.2",
-    "mocha": "^3.4.2",
+    "mocha": "^5.2.0",
     "pdf2json": "^1.1.7",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.2"
   }
 }
