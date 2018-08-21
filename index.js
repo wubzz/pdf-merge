@@ -30,12 +30,6 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  if(files.length === 1) {
-    reject(new Error('You need at least two files in order to merge PDF documents.'));
-
-    return;
-  }
-
   options = Object.assign({
     libPath: 'pdftk',
     output:  Buffer,
