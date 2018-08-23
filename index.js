@@ -16,26 +16,18 @@ const writeFile = Promise.promisify(fs.writeFile);
 const isWindows = os.platform() === 'win32';
 
 module.exports = (files, options) => new Promise((resolve, reject) => {
-  if(!Array.isArray(files)) {
-    reject(new TypeError('Expected files to be an array of paths to PDF files.'));
-
-    return;
-  }
+  if(!Array.isArray(files)) 
+    return reject(new TypeError('Expected files to be an array of paths to PDF files.'));
 
   files = files.filter((file) => typeof file === typeof '');
 
-  if(files.length === 0) {
-    reject(new Error('No files were submitted for merging.'));
-
-    return;
-  }
+  if(files.length === 0) 
+    return reject(new Error('No files were submitted for merging.'));
 
   if(files.length === 1)
     readFile(files[0])
     .then((buffer) => {
-      resolve(output(buffer));
-
-      return;
+      return resolve(output(buffer));
     })
     .catch(reject);
 
