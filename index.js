@@ -30,14 +30,14 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  if(files.length === 1){
+  if(files.length === 1)
     readFile(files[0])
     .then((buffer) => {
-      return output(buffer);
+      resolve(output(buffer));
+
+      return;
     })
-    .then(resolve)
     .catch(reject);
-  }
 
   options = Object.assign({
     libPath: 'pdftk',
@@ -79,18 +79,19 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
       .then(() => buffer);
   }
 
-  childPromise
-    .then(() =>
-      readFile(tmpFilePath)
-    )
-    .then((buffer) =>
-      new Promise((resolve) => {
-        fs.unlink(tmpFilePath, () => resolve(buffer));
+  if(files.length > 1)
+    childPromise
+      .then(() =>
+        readFile(tmpFilePath)
+      )
+      .then((buffer) =>
+        new Promise((resolve) => {
+          fs.unlink(tmpFilePath, () => resolve(buffer));
+        })
+      )
+      .then((buffer) => {
+        return output(buffer);
       })
-    )
-    .then((buffer) => {
-      return output(buffer);
-    })
-    .then(resolve)
-    .catch(reject);
+      .then(resolve)
+      .catch(reject);
 });
