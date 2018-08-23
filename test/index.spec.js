@@ -78,22 +78,14 @@ describe('PDFMerge', () => {
 					return true;
 				})
 		);
-
-		it('Ensures at least two files are submitted for merging', () =>
-			PDFMerge([pdf1], {})
-				.then(() => {
-					throw new Error('Should have thrown error')
-				})
-				.catch((error) => {
-					expect(error instanceof Error).toEqual(true);
-					expect(error.message).toEqual('You need at least two files in order to merge PDF documents.');
-
-					return true;
-				})
-		);
 	});
 
 	describe('Buffer', () => {
+		it('Can merge one document', () =>
+			PDFMerge([pdf1], {})
+				.then(assertPageCount(1))
+		);
+
 		it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {})
 				.then(assertPageCount(2))
@@ -111,6 +103,13 @@ describe('PDFMerge', () => {
 	});
 
 	describe('Stream', () => {
+		it('Can merge one documents', () =>
+			PDFMerge([pdf1], {output: 'Stream'})
+				.then((stream) =>
+					assertPageCount(1)(stream.read())
+				)
+		);
+
 		it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {output: 'Stream'})
 				.then((stream) =>
@@ -134,6 +133,15 @@ describe('PDFMerge', () => {
 	});
 
 	describe('File', () => {
+		it('Can merge one document', () =>
+			PDFMerge([pdf1], {output: `${__dirname}/files/out/File1.pdf`})
+				.then((buffer) => {
+					expect(fs.existsSync(`${__dirname}/files/out/File1.pdf`)).toEqual(true);
+
+					return assertPageCount(1)(buffer);
+				})
+		)
+
 		it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {output: `${__dirname}/files/out/File1.pdf`})
 				.then((buffer) => {
