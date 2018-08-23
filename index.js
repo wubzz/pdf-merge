@@ -24,17 +24,34 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   if(files.length === 0) 
     return reject(new Error('No files were submitted for merging.'));
 
-  if(files.length === 1)
-    readFile(files[0])
-    .then((buffer) => {
-      return resolve(output(buffer));
-    })
-    .catch(reject);
-
   options = Object.assign({
     libPath: 'pdftk',
     output:  Buffer,
   }, options);
+
+  const output = (buffer) => {
+    if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
+      return buffer;
+    }
+
+    if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
+      const stream = new PassThrough();
+
+      stream.end(buffer);
+
+      return stream;
+    }
+
+    return writeFile(options.output, buffer)
+      .then(() => buffer);
+  }
+
+  if(files.length === 1)
+    return readFile(files[0])
+    .then((buffer) => {
+      return resolve(output(buffer));
+    })
+    .catch(reject);
 
   const tmpFilePath = isWindows
     ? tmp.tmpNameSync()
@@ -54,36 +71,18 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     ? execFile(options.libPath, args)
     : exec(`${options.libPath} ${args.join(' ')}`);
 
-  const output = (buffer) => {
-    if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
-      return buffer;
-    }
-
-    if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
-      const stream = new PassThrough();
-
-      stream.end(buffer);
-
-      return stream;
-    }
-
-    return writeFile(options.output, buffer)
-      .then(() => buffer);
-  }
-
-  if(files.length > 1)
-    childPromise
-      .then(() =>
-        readFile(tmpFilePath)
-      )
-      .then((buffer) =>
-        new Promise((resolve) => {
-          fs.unlink(tmpFilePath, () => resolve(buffer));
-        })
-      )
-      .then((buffer) => {
-        return output(buffer);
+  childPromise
+    .then(() =>
+      readFile(tmpFilePath)
+    )
+    .then((buffer) =>
+      new Promise((resolve) => {
+        fs.unlink(tmpFilePath, () => resolve(buffer));
       })
-      .then(resolve)
-      .catch(reject);
+    )
+    .then((buffer) => {
+      return output(buffer);
+    })
+    .then(resolve)
+    .catch(reject);
 });
