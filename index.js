@@ -30,12 +30,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  options = Object.assign({
-    libPath: 'pdftk',
-    output:  Buffer,
-  }, options);
-
-  if (files.length === 1){
+  if(files.length === 1){
     readFile(files[0])
     .then((buffer) => {
       return output(buffer);
@@ -43,6 +38,11 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     .then(resolve)
     .catch(reject);
   }
+
+  options = Object.assign({
+    libPath: 'pdftk',
+    output:  Buffer,
+  }, options);
 
   const tmpFilePath = isWindows
     ? tmp.tmpNameSync()
