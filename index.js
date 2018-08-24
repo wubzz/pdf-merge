@@ -30,16 +30,38 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  if(files.length === 1) {
-    reject(new Error('You need at least two files in order to merge PDF documents.'));
+  const output = (buffer) => {
+    if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
+      return buffer;
+    }
 
-    return;
+    if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
+      const stream = new PassThrough();
+
+      stream.end(buffer);
+
+      return stream;
+    }
+
+    return writeFile(options.output, buffer)
+      .then(() => buffer);
   }
 
   options = Object.assign({
     libPath: 'pdftk',
     output:  Buffer,
   }, options);
+  
+  if(files.length === 1){
+    readFile(files[0])
+    .then((buffer) => {
+      return output(buffer);
+    })
+    .then(resolve)
+    .catch(reject);
+    
+    return;
+  }
 
   const tmpFilePath = isWindows
     ? tmp.tmpNameSync()
@@ -69,20 +91,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
       })
     )
     .then((buffer) => {
-      if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
-        return buffer;
-      }
-
-      if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
-        const stream = new PassThrough();
-
-        stream.end(buffer);
-
-        return stream;
-      }
-
-      return writeFile(options.output, buffer)
-        .then(() => buffer);
+      return output(buffer);
     })
     .then(resolve)
     .catch(reject);
