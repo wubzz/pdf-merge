@@ -103,7 +103,7 @@ describe('PDFMerge', () => {
 	});
 
 	describe('Stream', () => {
-		it('Can merge one documents', () =>
+		it('Can merge one document', () =>
 			PDFMerge([pdf1], {output: 'Stream'})
 				.then((stream) =>
 					assertPageCount(1)(stream.read())
