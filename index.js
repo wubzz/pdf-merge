@@ -52,7 +52,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     output:  Buffer,
   }, options);
   
-  if(files.length === 1){
+  if(files.length === 1 && files[0].replace(/\\/, '/').split('/').pop() !== '*.pdf'){
     readFile(files[0])
     .then((buffer) => {
       return output(buffer);

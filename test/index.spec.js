@@ -33,6 +33,7 @@ const assertPageCount = (expected) => {
 	});
 };
 
+const wildcard      = `${__dirname}/files/*.pdf`;
 const pdf1          = `${__dirname}/files/1.pdf`;
 const pdf2          = `${__dirname}/files/2.pdf`;
 const pdfWithSpaces = `${__dirname}/files/with spaces.pdf`;
@@ -81,10 +82,15 @@ describe('PDFMerge', () => {
 	});
 
 	describe('Buffer', () => {
-		it('Can merge one document', () =>
-			PDFMerge([pdf1], {})
-				.then(assertPageCount(1))
-		);
+    it('Can merge one document', () =>
+      PDFMerge([pdf1], {})
+        .then(assertPageCount(1))
+    );
+
+    it('Can merge using wildcard', () =>
+      PDFMerge([wildcard], {})
+        .then(assertPageCount(3))
+    );
 
 		it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {})
@@ -103,14 +109,22 @@ describe('PDFMerge', () => {
 	});
 
 	describe('Stream', () => {
-		it('Can merge one document', () =>
-			PDFMerge([pdf1], {output: 'Stream'})
-				.then((stream) =>
-					assertPageCount(1)(stream.read())
-				)
-		);
+    it('Can merge one document', () =>
+      PDFMerge([pdf1], {output: 'Stream'})
+        .then((stream) =>
+          assertPageCount(1)(stream.read())
+        )
+    );
 
-		it('Can merge two documents', () =>
+
+    it('Can merge using wildcard document', () =>
+      PDFMerge([wildcard], {output: 'Stream'})
+        .then((stream) =>
+          assertPageCount(3)(stream.read())
+        )
+    );
+
+    it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {output: 'Stream'})
 				.then((stream) =>
 					assertPageCount(2)(stream.read())
@@ -133,14 +147,23 @@ describe('PDFMerge', () => {
 	});
 
 	describe('File', () => {
-		it('Can merge one document', () =>
-			PDFMerge([pdf1], {output: `${__dirname}/files/out/File1.pdf`})
-				.then((buffer) => {
-					expect(fs.existsSync(`${__dirname}/files/out/File1.pdf`)).toEqual(true);
+    it('Can merge one document', () =>
+      PDFMerge([pdf1], {output: `${__dirname}/files/out/File1.pdf`})
+        .then((buffer) => {
+          expect(fs.existsSync(`${__dirname}/files/out/File1.pdf`)).toEqual(true);
 
-					return assertPageCount(1)(buffer);
-				})
-		)
+          return assertPageCount(1)(buffer);
+        })
+    );
+
+    it('Can merge using wildcard', () =>
+      PDFMerge([wildcard], {output: `${__dirname}/files/out/wildcard.pdf`})
+        .then((buffer) => {
+          expect(fs.existsSync(`${__dirname}/files/out/wildcard.pdf`)).toEqual(true);
+
+          return assertPageCount(3)(buffer);
+        })
+    );
 
 		it('Can merge two documents', () =>
 			PDFMerge([pdf1, pdf2], {output: `${__dirname}/files/out/File1.pdf`})
