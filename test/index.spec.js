@@ -37,6 +37,7 @@ const wildcard      = `${__dirname}/files/*.pdf`;
 const pdf1          = `${__dirname}/files/1.pdf`;
 const pdf2          = `${__dirname}/files/2.pdf`;
 const pdfWithSpaces = `${__dirname}/files/with spaces.pdf`;
+const pdfProtected  = {file: `${__dirname}/files/protected.pdf`, inputPw: '_SeCrEt_'};
 
 describe('PDFMerge', () => {
 
@@ -67,7 +68,7 @@ describe('PDFMerge', () => {
 				})
 		);
 
-		it('Filters files array from values that are not strings', () =>
+		it('Filters files array from values that are not strings or valid objects', () =>
 			PDFMerge([Buffer.from([1]), null, undefined, [], {}, new Error()], {})
 				.then(() => {
 					throw new Error('Should have thrown error')
@@ -106,6 +107,11 @@ describe('PDFMerge', () => {
 			PDFMerge([pdf1, pdfWithSpaces], {})
 				.then(assertPageCount(2))
 		);
+
+		it('Can merge document protected with password', () =>
+			PDFMerge([pdf1, pdfProtected], {})
+				.then(assertPageCount(2))
+		);
 	});
 
 	describe('Stream', () => {
@@ -140,6 +146,13 @@ describe('PDFMerge', () => {
 
 		it('Can merge files with filename containing spaces', () =>
 			PDFMerge([pdf1, pdfWithSpaces], {output: 'Stream'})
+				.then((stream) =>
+					assertPageCount(2)(stream.read())
+				)
+		);
+
+		it('Can merge document protected with password', () =>
+			PDFMerge([pdf1, pdfProtected], { output: 'Stream' })
 				.then((stream) =>
 					assertPageCount(2)(stream.read())
 				)
@@ -190,6 +203,15 @@ describe('PDFMerge', () => {
 
 					return assertPageCount(2)(buffer);
 				})
+		);
+
+		it('Can merge document protected with password', () =>
+			PDFMerge([pdf1, pdfProtected], {output: `${__dirname}/files/out/File3.pdf`})
+			.then((buffer) => {
+				expect(fs.existsSync(`${__dirname}/files/out/File3.pdf`)).toEqual(true);
+
+				return assertPageCount(2)(buffer);
+			})
 		);
 	});
 });

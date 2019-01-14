@@ -20,7 +20,12 @@ https://www.pdflabs.com/docs/install-pdftk-on-redhat-or-centos/
 ### Syntax
 **PDFMerge(`files`, `options`)**
 
-`files` is expected to be an array of files. Must be full path for each respective file.
+`files` is expected to be an array of files (must be full path for each respective file) or objects.
+
+The file object have the follow options:
+* `file` Full path of PDF file
+* `inputPw` Password to decrypt a PDF *Optional!*
+
 
 `options`:
 * `libPath` Should only be provided if pdftk is not in your `PATH` *Optional!*
@@ -35,6 +40,7 @@ const PDFMerge = require('pdf-merge');
 const files = [
 	`${__dirname}/1.pdf`,
 	`${__dirname}/2.pdf`,
+	{file: `${__dirname}/protected.pdf`, inputPw: '_SeCrEt_'}
 ];
 
 //Buffer (Default)
