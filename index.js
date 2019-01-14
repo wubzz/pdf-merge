@@ -15,27 +15,38 @@ const writeFile = Promise.promisify(fs.writeFile);
 
 const isWindows = os.platform() === 'win32';
 
+const genHandle = (num) => {
+  let s = '', t;
+
+  while (num > 0) {
+    t = (num - 1) % 26;
+    s = String.fromCharCode(65 + t) + s;
+    num = (num - t) / 26 | 0;
+  }
+  return s;
+}
+
 module.exports = (files, options) => new Promise((resolve, reject) => {
-  if(!Array.isArray(files)) {
+  if (!Array.isArray(files)) {
     reject(new TypeError('Expected files to be an array of paths to PDF files.'));
 
     return;
   }
 
-  files = files.filter((file) => typeof file === typeof '');
+  files = files.filter((file) => typeof file === 'string' || (typeof file === 'object' && typeof file.file === 'string'));
 
-  if(files.length === 0) {
+  if (files.length === 0) {
     reject(new Error('No files were submitted for merging.'));
 
     return;
   }
 
   const output = (buffer) => {
-    if(options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
+    if (options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
       return buffer;
     }
 
-    if(options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
+    if (options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
       const stream = new PassThrough();
 
       stream.end(buffer);
@@ -49,17 +60,19 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
 
   options = Object.assign({
     libPath: 'pdftk',
-    output:  Buffer,
+    output: Buffer,
   }, options);
-  
-  if(files.length === 1 && files[0].replace(/\\/, '/').split('/').pop() !== '*.pdf'){
-    readFile(files[0])
-    .then((buffer) => {
-      return output(buffer);
-    })
-    .then(resolve)
-    .catch(reject);
-    
+
+  if (files.length === 1 && (typeof files[0] === 'object' && !files[0].hasOwnProperty('inputPw'))) {
+    const file = (typeof files[0] === 'string') ? files[0] : files[0].file;
+
+    readFile(file)
+      .then((buffer) => {
+        return output(buffer);
+      })
+      .then(resolve)
+      .catch(reject);
+
     return;
   }
 
@@ -67,11 +80,30 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     ? tmp.tmpNameSync()
     : shellescape([tmp.tmpNameSync()]);
 
-  const args = files.map((file) =>
-    isWindows
+  const inputPws = []
+  const args = files.map((value, idx) => {
+    const isObject = typeof value === 'object';
+    let file = isObject ? value.file : value;
+
+    let handle = null;
+    // Check if we need use handles
+    if (isObject && typeof value.inputPw === 'string' && value.inputPw.length > 0) {
+      handle = genHandle(idx + 1);
+      inputPws.push({ handle, inputPw: value.inputPw });
+      file = `${handle}=${file}`;
+    }
+
+    return isWindows
       ? `"${file}"`
-      : shellescape([file.replace(/\\/g, '/')])
-  ).concat(['cat', 'output', tmpFilePath]);
+      : shellescape([file.replace(/\\/g, '/')]);
+  })
+
+  if (inputPws.length > 0) {
+    args.push('input_pw');
+    Array.prototype.push.apply(args, inputPws.map(item => `${item.handle}=${item.inputPw}`));
+  }
+
+  args.push('cat', 'output', tmpFilePath);
 
   if (options.execOptions) {
     args.push(options.execOptions);
