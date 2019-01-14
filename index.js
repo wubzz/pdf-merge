@@ -33,7 +33,9 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  files = files.filter((file) => typeof file === 'string' || (typeof file === 'object' && typeof file.file === 'string'));
+  files = files
+    .map((file) => typeof file === 'string' ? { file } : file)
+    .filter((file) => typeof file.file === 'string');
 
   if (files.length === 0) {
     reject(new Error('No files were submitted for merging.'));
@@ -63,17 +65,18 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     output: Buffer,
   }, options);
 
-  if (files.length === 1 && (typeof files[0] === 'object' && !files[0].hasOwnProperty('inputPw'))) {
-    const file = (typeof files[0] === 'string') ? files[0] : files[0].file;
+  if (files.length === 1) {
+    const fileObjKeys = Object.keys(files[0])
+    if (fileObjKeys.length === 1 && fileObjKeys[0] === 'file') {
+      readFile(files[0].file)
+        .then((buffer) => {
+          return output(buffer);
+        })
+        .then(resolve)
+        .catch(reject);
 
-    readFile(file)
-      .then((buffer) => {
-        return output(buffer);
-      })
-      .then(resolve)
-      .catch(reject);
-
-    return;
+      return;
+    }
   }
 
   const tmpFilePath = isWindows
@@ -82,12 +85,11 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
 
   const inputPws = []
   const args = files.map((value, idx) => {
-    const isObject = typeof value === 'object';
-    let file = isObject ? value.file : value;
+    let file = value.file;
 
     let handle = null;
     // Check if we need use handles
-    if (isObject && typeof value.inputPw === 'string' && value.inputPw.length > 0) {
+    if (typeof value.inputPw === 'string' && value.inputPw.length > 0) {
       handle = genHandle(idx + 1);
       inputPws.push({ handle, inputPw: value.inputPw });
       file = `${handle}=${file}`;
