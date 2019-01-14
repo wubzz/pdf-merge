@@ -34,9 +34,9 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   }
 
   files = files
-    .map((file) => typeof file === 'string' ? { file } : file)
-    .filter((file) => typeof file.file === 'string');
-
+    .map((file) => typeof file === 'string' ? ({ file }) : file)
+    // Object.keys(file)[0] !== '0' -> Check if is not a Buffer object
+    .filter((file) => (file !== null && typeof file === 'object' && Object.keys(file)[0] !== '0' && typeof file.file === 'string'));
   if (files.length === 0) {
     reject(new Error('No files were submitted for merging.'));
 
