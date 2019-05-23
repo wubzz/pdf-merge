@@ -70,6 +70,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
       if (isStreamOutput()) {
         const stream = fs.createReadStream(files[0].file);
         resolve(output(stream));
+        return;
       }
 
       readFile(files[0].file)
