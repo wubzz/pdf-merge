@@ -33,7 +33,7 @@ const assertPageCount = (expected) => {
 	});
 };
 
-const wildcard      = `${__dirname}/files/*.pdf`;
+const wildcard      = `${__dirname}/files/wildcardtest/*.pdf`;
 const pdf1          = `${__dirname}/files/1.pdf`;
 const pdf2          = `${__dirname}/files/2.pdf`;
 const pdfWithSpaces = `${__dirname}/files/with spaces.pdf`;

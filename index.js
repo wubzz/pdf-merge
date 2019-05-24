@@ -65,7 +65,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     output: Buffer,
   }, options);
 
-  if (files.length === 1) {
+  if (files.length === 1 && files[0].file && files[0].file.replace(/\\/, '/').split('/').pop() !== '*.pdf') {
     const fileObjKeys = Object.keys(files[0])
     if (fileObjKeys.length === 1 && fileObjKeys[0] === 'file') {
       readFile(files[0].file)
