@@ -122,7 +122,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
 
 
   const unlinkTempFile = (buffer) => {
-    new Promise((resolve) => {
+    return new Promise((resolve) => {
       fs.unlink(tmpFilePath, () => resolve(buffer));
     })
   };
