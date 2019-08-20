@@ -8,7 +8,6 @@ const Promise     = require('bluebird');
 const PassThrough = require('stream').PassThrough;
 const shellescape = require('shell-escape');
 
-const execFile  = Promise.promisify(child.execFile);
 const exec      = Promise.promisify(child.exec);
 const readFile  = Promise.promisify(fs.readFile);
 const writeFile = Promise.promisify(fs.writeFile);
@@ -43,22 +42,22 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     return;
   }
 
-  const output = (buffer) => {
-    if (options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER') {
-      return buffer;
+  const isBufferOutput = () => {
+    return options.output === Buffer || String(options.output).toUpperCase() === 'BUFFER';
+  };
+
+  const isStreamOutput = () => {
+    return options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1;
+  };
+
+  const output = (streamOrBuffer) => {
+    if (isBufferOutput() || isStreamOutput()) {
+      return streamOrBuffer;
     }
 
-    if (options.output === PassThrough || ['STREAM', 'READSTREAM'].indexOf(String(options.output).toUpperCase()) !== -1) {
-      const stream = new PassThrough();
-
-      stream.end(buffer);
-
-      return stream;
-    }
-
-    return writeFile(options.output, buffer)
-      .then(() => buffer);
-  }
+    return writeFile(options.output, streamOrBuffer)
+      .then(() => streamOrBuffer);
+  };
 
   options = Object.assign({
     libPath: 'pdftk',
@@ -68,6 +67,12 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   if (files.length === 1 && files[0].file && files[0].file.replace(/\\/, '/').split('/').pop() !== '*.pdf') {
     const fileObjKeys = Object.keys(files[0])
     if (fileObjKeys.length === 1 && fileObjKeys[0] === 'file') {
+      if (isStreamOutput()) {
+        const stream = fs.createReadStream(files[0].file);
+        resolve(output(stream));
+        return;
+      }
+
       readFile(files[0].file)
         .then((buffer) => {
           return output(buffer);
@@ -112,21 +117,27 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   }
 
   const childPromise = (isWindows && options.libPath !== 'pdftk')
-    ? execFile(options.libPath, args)
+    ? exec(`"${options.libPath}" ${args.join(' ')}`)
     : exec(`${options.libPath} ${args.join(' ')}`);
 
-  childPromise
-    .then(() =>
-      readFile(tmpFilePath)
-    )
-    .then((buffer) =>
-      new Promise((resolve) => {
-        fs.unlink(tmpFilePath, () => resolve(buffer));
-      })
-    )
-    .then((buffer) => {
-      return output(buffer);
+
+  const unlinkTempFile = (buffer) => {
+    return new Promise((resolve) => {
+      fs.unlink(tmpFilePath, () => resolve(buffer));
     })
+  };
+
+  childPromise.then(() => {
+    if (isStreamOutput()) {
+      const stream = fs.createReadStream(tmpFilePath);
+      stream.on('end', () => unlinkTempFile());
+      return stream;
+    }
+
+    return readFile(tmpFilePath).then(unlinkTempFile)
+  })
+    .then((streamOrBuffer) => output(streamOrBuffer))
     .then(resolve)
     .catch(reject);
+
 });
