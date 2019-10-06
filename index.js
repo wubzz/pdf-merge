@@ -83,29 +83,39 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     ? tmp.tmpNameSync()
     : shellescape([tmp.tmpNameSync()]);
 
-  const inputPws = []
+  const inputPws = [];
+  const catOpts = [];
   const args = files.map((value, idx) => {
     let file = value.file;
+    // Only support inputPw or catOpt for non-wildcards
+    if (value.file.replace(/\\/, '/').split('/').pop() !== '*.pdf') {
+      const handle = genHandle(idx + 1);
+      file = `${handle}=${value.file}`;
 
-    let handle = null;
-    // Check if we need use handles
-    if (typeof value.inputPw === 'string' && value.inputPw.length > 0) {
-      handle = genHandle(idx + 1);
-      inputPws.push({ handle, inputPw: value.inputPw });
-      file = `${handle}=${file}`;
+      if (typeof value.inputPw === 'string' && value.inputPw.length > 0) {
+        inputPws.push({ handle, inputPw: value.inputPw });
+      }
+
+      catOpts.push({ handle, catOpt: value.catOpt || '' });
     }
 
     return isWindows
       ? `"${file}"`
       : shellescape([file.replace(/\\/g, '/')]);
-  })
+  });
 
   if (inputPws.length > 0) {
     args.push('input_pw');
     Array.prototype.push.apply(args, inputPws.map(item => `${item.handle}=${item.inputPw}`));
   }
 
-  args.push('cat', 'output', tmpFilePath);
+  args.push(
+    'cat',
+    ...files.some(f => typeof f.catOpt === 'string' && f.catOpt.length > 0)
+      ? catOpts.map(item => `${item.handle}${item.catOpt}`)
+      : [], // don't specify cat options unless required
+    'output',
+    tmpFilePath);
 
   if (options.execOptions) {
     args.push(options.execOptions);

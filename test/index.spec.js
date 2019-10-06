@@ -37,7 +37,8 @@ const wildcard      = `${__dirname}/files/wildcardtest/*.pdf`;
 const pdf1          = `${__dirname}/files/1.pdf`;
 const pdf2          = `${__dirname}/files/2.pdf`;
 const pdfWithSpaces = `${__dirname}/files/with spaces.pdf`;
-const pdfProtected  = {file: `${__dirname}/files/protected.pdf`, inputPw: '_SeCrEt_'};
+const pdfProtected  = { file: `${__dirname}/files/protected.pdf`, inputPw: '_SeCrEt_' };
+const pdfFirstPage  = { file: `${__dirname}/files/two-pages.pdf`, catOpt: '1' };
 
 describe('PDFMerge', () => {
 
@@ -112,6 +113,11 @@ describe('PDFMerge', () => {
 			PDFMerge([pdf1, pdfProtected], {})
 				.then(assertPageCount(2))
 		);
+
+		it('Can merge files with cat options', () =>
+			PDFMerge([pdf1, pdf2, pdfFirstPage])
+				.then(assertPageCount(3))
+		);
 	});
 
 	describe('Stream', () => {
@@ -155,6 +161,13 @@ describe('PDFMerge', () => {
 			PDFMerge([pdf1, pdfProtected], { output: 'Stream' })
 				.then((stream) =>
 					assertPageCount(2)(stream.read())
+				)
+		);
+
+		it('Can merge files with cat options', () =>
+			PDFMerge([pdf1, pdf2, pdfFirstPage], { output: 'Stream' })
+				.then((stream) =>
+					assertPageCount(3)(stream.read())
 				)
 		);
 	});
@@ -211,6 +224,15 @@ describe('PDFMerge', () => {
 				expect(fs.existsSync(`${__dirname}/files/out/File3.pdf`)).toEqual(true);
 
 				return assertPageCount(2)(buffer);
+			})
+		);
+
+		it('Can merge files with cat options', () =>
+			PDFMerge([pdf1, pdf2, pdfFirstPage], { output: `${__dirname}/files/out/File3.pdf` })
+			.then((buffer) => {
+				expect(fs.existsSync(`${__dirname}/files/out/File3.pdf`)).toEqual(true);
+
+				return assertPageCount(3)(buffer);
 			})
 		);
 	});
