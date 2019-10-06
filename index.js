@@ -83,7 +83,8 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     ? tmp.tmpNameSync()
     : shellescape([tmp.tmpNameSync()]);
 
-  const inputPws = []
+  const inputPws = [];
+  const catOpts = [];
   const args = files.map((value, idx) => {
     let file = value.file;
 
@@ -92,6 +93,12 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     if (typeof value.inputPw === 'string' && value.inputPw.length > 0) {
       handle = genHandle(idx + 1);
       inputPws.push({ handle, inputPw: value.inputPw });
+      file = `${handle}=${file}`;
+    }
+
+    if (catOpts.length > 0 || (typeof value.catOpt === 'string' && value.catOpt.length > 0)) {
+      handle = handle || genHandle(idx + 1);
+      catOpts.push({ handle, catOpt: value.catOpt || '' });
       file = `${handle}=${file}`;
     }
 
@@ -105,7 +112,7 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     Array.prototype.push.apply(args, inputPws.map(item => `${item.handle}=${item.inputPw}`));
   }
 
-  args.push('cat', 'output', tmpFilePath);
+  args.push('cat', ...catOpts.map(item => `${item.handle}${item.catOpt}`), 'output', tmpFilePath);
 
   if (options.execOptions) {
     args.push(options.execOptions);
