@@ -108,7 +108,9 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   args.push('cat', 'output', tmpFilePath);
 
   if (options.execOptions) {
-    args.push(options.execOptions);
+    args.push( isWindows
+      ? `"options.execOptions"`
+      : shellescape([options.execOptions.replace(/\\/g, '/')]));
   }
 
   const childPromise = (isWindows && options.libPath !== 'pdftk')
