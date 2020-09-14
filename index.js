@@ -91,7 +91,10 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
     // Check if we need use handles
     if (typeof value.inputPw === 'string' && value.inputPw.length > 0) {
       handle = genHandle(idx + 1);
-      inputPws.push({ handle, inputPw: value.inputPw });
+      inputPws.push({ handle, inputPw: isWindows
+        ? value.inputPw
+        : shellescape([value.inputPw.replace(/\\/g, '/')])
+      });
       file = `${handle}=${file}`;
     }
 
@@ -108,7 +111,9 @@ module.exports = (files, options) => new Promise((resolve, reject) => {
   args.push('cat', 'output', tmpFilePath);
 
   if (options.execOptions) {
-    args.push(options.execOptions);
+    args.push( isWindows
+      ? `"options.execOptions"`
+      : shellescape([options.execOptions.replace(/\\/g, '/')]));
   }
 
   const childPromise = (isWindows && options.libPath !== 'pdftk')
